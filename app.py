@@ -71,24 +71,25 @@ class Project(db.Model):
 
 
 
-# class ProjectConfig(db.Model):
-#     __tablename__ = 'projectconfig'
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(64))
-#     value = db.Column(db.Text)               # 备注
-#     # 配置所属的项目
-#     project_id = db.relationship(db.String(128), db.ForeignKey('project.id'))
-#     createdat = db.Column(db.DateTime(), default=datetime.utcnow)
-#     updatedat = db.Column(db.DateTime(), default=datetime.utcnow)
+class ProjectConfig(db.Model):
+    __tablename__ = 'projectconfigs'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
+    value = db.Column(db.Text)               # 备注
+    puid = db.Column(db.String(128))
+    # 配置所属的项目
+    # project_id = db.relationship(db.String(128), db.ForeignKey('project.id'))
+    createdat = db.Column(db.DateTime(), default=datetime.utcnow)
+    updatedat = db.Column(db.DateTime(), default=datetime.utcnow)
 
-#     def to_json(self):
-#         return{
-#             'name':self.name,
-#             'value':self.value,
-#             'puid':self.puid,
-#             'createdat':self.createdat,
-#             'updatedat':self.updatedat,
-#         }
+    def to_json(self):
+        return{
+            'name':self.name,
+            'value':self.value,
+            'puid':self.puid,
+            'createdat':self.createdat,
+            'updatedat':self.updatedat,
+        }
 
 @app.route('/tenants', methods=['POST'])
 # 创建租户，租户名唯一不可重复
@@ -122,8 +123,6 @@ def create_tenant():
             "name": name,
             "ouid": ouid,
             "describe": describe,
-            "createdat": tenant.createdat,
-            "updatedat": tenant.updatedat,
         }
     })
 
@@ -251,72 +250,68 @@ def delete_project(id):
 
 
 
-# @app.route('/config', methods=['GET'])
-# def get_projectconfig(id):
-#     projectconfig = ProjectConfig.query.get_or_404(id)
+@app.route('/config', methods=['GET'])
+def get_projectconfig():
+    projectconfigs = ProjectConfig.query.all()
 
-#     return jsonify({'success':True,
-#                     'error_code':0,
-#                     })
-
-
-
-# @app.route('/config', methods=['POST'])
-# def creat_projectconfig():
-#     name = request.json.get('name')
-#     value = request.json.get('value')     # 备注
-#     puid = request.json.get('puid')
-#     createdat = request.json.get('createdat')
-#     updatedat = request.json.get('updatedat')
-
-#     projectconfig = ProjectConfig(name=name,value=value,puid=puid,createdat=createdat,updatedat=updatedat)
-
-#     db.session.add(projectconfig)
-#     db.session.commit()
+    return jsonify({'success':True,
+                    'data':projectconfigs,
+                    })
 
 
-#     return jsonify({
-#                     'success':True,
-#                     'data':{
-#                         'name':name,
-#                         'puid':puid,
-#                         'value':value,
-#                         'createdat':createdat,
-#                         'updatedat':updatedat,
-#                         }
-#                     })
 
-# @app.route('/config/<int:id>', methods=['PUT'])
-# def modify_projectconfig(id):
-#     projectconfig = ProjectConfig.query.get_or_404(id)
-#     name = request.json.get('name')
-#     value = request.json.get('value')
-#     createdat = request.json.get('createdat')
-#     updatedat = request.json.get('updatedat')
-#     projectconfig.name  = name or projectconfig.name
-#     projectconfig.value = value or projectconfig.value
-#     projectconfig.createdat = createdat or projectconfig.createdat
-#     projectconfig.updatedat = updatedat or projectconfig.updatedat
+@app.route('/config', methods=['POST'])
+def creat_projectconfig():
+    name = request.json.get('name')
+    value = request.json.get('value')     # 备注
+    puid = request.json.get('puid')
+    createdat = request.json.get('createdat')
+    updatedat = request.json.get('updatedat')
 
-#     db.session.commit()
+    projectconfig = ProjectConfig(name=name,value=value,puid=puid,createdat=createdat,updatedat=updatedat)
 
-#     return jsonify({
-#                     'success':True,
-#                     'error_code':0,
-#                     })
+    db.session.add(projectconfig)
+    db.session.commit()
+
+
+    return jsonify({
+                    'success':True,
+                    'data':{
+                        'name':name,
+                        'puid':puid,
+                        'value':value,
+                        }
+                    })
+
+@app.route('/config/<int:id>', methods=['PUT'])
+def modify_projectconfig(id):
+    projectconfig = ProjectConfig.query.get_or_404(id)
+    name = request.json.get('name')
+    value = request.json.get('value')
+    createdat = request.json.get('createdat')
+    updatedat = request.json.get('updatedat')
+    projectconfig.name  = name or projectconfig.name
+    projectconfig.value = value or projectconfig.value
+    projectconfig.createdat = createdat or projectconfig.createdat
+    projectconfig.updatedat = updatedat or projectconfig.updatedat
+
+    db.session.commit()
+
+    return jsonify({
+                    'success':True,
+                    'error_code':0,
+                    })
 
 
 
 
-# @app.route('/config/delete', methods=['POST'])
-# def delete_projectconfig(id):
-#     ids = request.json.get('ids')
-#     for id in ids:
-#         projectconfig = ProjectConfig.query.get(id)
-#         if projectconfig is None:
-#             return jsonify({'success':False, 'error_code':0, 'errmsg':'该项目配置不存在'})
-#         db.session.delete(projectconfig)
-#     db.session.commit()
+@app.route('/config/delete<int:id>', methods=['DELETE'])
+def delete_projectconfig(id):
+    projectconfig = ProjectConfig.query.get(id)
+    if projectconfig is None:
+        return jsonify({'success':False, 'error_code':0, 'errmsg':'项目配置不存在'})
+    db.session.delete(projectconfig)
+    db.session.commit()
 
 
 
