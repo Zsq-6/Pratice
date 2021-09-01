@@ -84,6 +84,7 @@ class ProjectConfig(db.Model):
 
     def to_json(self):
         return{
+            'id':self.id,
             'name':self.name,
             'value':self.value,
             'puid':self.puid,
@@ -255,7 +256,7 @@ def get_projectconfig():
     projectconfigs = ProjectConfig.query.all()
 
     return jsonify({'success':True,
-                    'data':projectconfigs,
+                    'data':[projectconfig .to_json() for projectconfig in projectconfigs],
                     })
 
 
@@ -305,13 +306,18 @@ def modify_projectconfig(id):
 
 
 
-@app.route('/config/delete<int:id>', methods=['DELETE'])
+@app.route('/config/delete/<int:id>', methods=['DELETE'])
 def delete_projectconfig(id):
     projectconfig = ProjectConfig.query.get(id)
     if projectconfig is None:
         return jsonify({'success':False, 'error_code':0, 'errmsg':'项目配置不存在'})
     db.session.delete(projectconfig)
     db.session.commit()
+
+    return jsonify({
+                    'success':True,
+                    'error_code':0,
+                    })
 
 
 
