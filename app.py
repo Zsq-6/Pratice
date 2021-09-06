@@ -53,8 +53,8 @@ class Project(db.Model):
     tenant_id = db.Column(db.Integer, db.ForeignKey('tenants.id'))
     createdat = db.Column(db.DateTime(), default=datetime.utcnow)
     updatedat = db.Column(db.DateTime(), default=datetime.utcnow)
-#     # 项目相关配置
-#     # projectconfigs = db.relationship('ProjectConfig', backref='projects', lazy='dynamic')
+    # 项目相关配置
+    projectconfigs = db.relationship('ProjectConfig', backref='project', lazy=True)
     def to_json(self):
         return{
             'id':self.id,
@@ -79,7 +79,7 @@ class ProjectConfig(db.Model):
     value = db.Column(db.Text)               # 备注
     puid = db.Column(db.String(128))
     # 配置所属的项目
-    # project_id = db.relationship(db.String(128), db.ForeignKey('project.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
     createdat = db.Column(db.DateTime(), default=datetime.utcnow)
     updatedat = db.Column(db.DateTime(), default=datetime.utcnow)
 
@@ -91,6 +91,7 @@ class ProjectConfig(db.Model):
             'puid':self.puid,
             'createdat':self.createdat,
             'updatedat':self.updatedat,
+            'project_id':self.project_id,
         }
 
 @app.route('/tenants', methods=['POST'])
@@ -276,8 +277,9 @@ def creat_projectconfig():
     puid = request.json.get('puid')
     createdat = request.json.get('createdat')
     updatedat = request.json.get('updatedat')
+    project_id = request.json.get('project_id')
 
-    projectconfig = ProjectConfig(name=name,value=value,puid=puid,createdat=createdat,updatedat=updatedat)
+    projectconfig = ProjectConfig(name=name,value=value,puid=puid,createdat=createdat,updatedat=updatedat,project_id=project_id)
 
     db.session.add(projectconfig)
     db.session.commit()
@@ -289,6 +291,7 @@ def creat_projectconfig():
                         'name':name,
                         'puid':puid,
                         'value':value,
+                        'project_id':project_id,
                         }
                     })
 
